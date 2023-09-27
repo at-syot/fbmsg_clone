@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Msg clone</title>
+  <style>
+      body {
+          background-color: black;
+      }
+
+      p, label, button, ul {
+          margin: 0;
+          padding: 0;
+      }
+
+      #messages {
+          padding: 1rem;
+          max-height: 800px;
+          overflow-y: scroll;
+          width: 360px;
+          background-color: darkblue;
+          color: white;
+          display: flex;
+          flex-direction: column;
+      }
+
+      #messages > li {
+          display: block;
+      }
+
+      #messages > li > p {
+          margin-top: 4px;
+      }
+
+      #messages > li.self {
+      }
+
+      #messages > li.other {
+          align-self: end;
+      }
+  </style>
+</head>
+
+<body>
+
+<div style="display: flex;">
+  <div style="width: 300px; background-color: darkblue; color: white">
+    <!--  chat, create chat group  -->
+    <div style="display: flex; justify-content: space-between; padding: 6px">
+      <label>CHATS</label>
+      <button>+ Create group</button>
+    </div>
+
+    <input id="search-users" type="text" placeholder="Search"/>
+    <hr/>
+
+    <!-- contacts list -->
+    <ul style="padding: 6px; display: flex; flex-direction: column; gap: 10px">
+      <li style="display: flex; gap: 4px; border-bottom: solid black 1px;">
+        <label style="color: green; font-weight: bold">online</label>
+        <p>username</p>
+      </li>
+      <li style="display: flex; gap: 4px; border-bottom: solid black 1px;">
+        <label style="color: green; font-weight: bold">online</label>
+        <p>username</p>
+      </li>
+
+      <li style="display: flex; gap: 4px; border-bottom: solid black 1px;">
+        <label style="color: green; font-weight: bold">online</label>
+        <p>username</p>
+      </li>
+    </ul>
+
+  </div>
+  <ul id="messages" style="margin: 0"></ul>
+</div>
+
+<form id="chat-msg" style="margin-top: 10px">
+  <input id="username" type="text" placeholder="username" disabled/>
+  <input id="msg-input" type="text" placeholder="type your message"/>
+  <input type="submit" value="Send ->">
+</form>
+</body>
+
+<script lang="js">
+    function onMsgSubmit(e) {
+        e.preventDefault()
+        const username = document.getElementById('username')
+        const msg = document.getElementById('msg-input')
+        if (msg && username) {
+            if (!username.value || !msg.value) {
+                alert("please type your username and msg")
+                return
+            }
+
+            let payload = {
+                type: "message",
+                username: username.value,
+                text: msg.value,
+                date: Date.now()
+            }
+            conn.send(JSON.stringify(payload))
+        }
+    }
+
+    function createMessageElement(event) {
+        const {type, username, text} = event
+
+        const usernameEl = document.getElementById('username')
+        const messagesEl = document.getElementById("messages")
+        const listCls = username === usernameEl.value ? 'self' : 'other'
+
+        const liEl = document.createElement('li')
+        const inner_strongEl = document.createElement('strong')
+        const inner_pEl = document.createElement('p')
+
+        inner_strongEl.innerText = username
+        inner_pEl.innerText = text
+
+        liEl.className = listCls
+        liEl.appendChild(inner_strongEl)
+        liEl.appendChild(inner_pEl)
+
+        messagesEl.appendChild(liEl)
+    }
+
+    function receiveEvent(event) {
+        const {data} = event
+        const parsedEvent = JSON.parse(data)
+
+        createMessageElement(parsedEvent)
+    }
+
+    async function fetchChannel(e) {
+        e.preventDefault()
+        console.log(fetch)
+    }
+
+    async function registerUsername(username) {
+        const body = JSON.stringify({ username })
+        const res = await fetch("http://localhost:3000/user", { method: "POST", body })
+        const { userId } = await res.json()
+        return userId
+    }
+
+    window.onload = async function () {
+        const USERNAME_KEY = 'user-data'
+        let storedUserData = window.localStorage.getItem(USERNAME_KEY)
+
+
+        const inputUsername = storedUserData ?
+            JSON.parse(storedUserData).uname :
+            prompt("Tell us a name.")
+
+        if (!inputUsername) {
+            alert("Please give me a name!")
+        } else {
+            // set username input
+            const uId = await registerUsername(inputUsername)
+            const udata = JSON.stringify({ uname: inputUsername, uId })
+            window.localStorage.setItem(USERNAME_KEY, udata)
+
+            document.getElementById("username").value = inputUsername
+
+            document.getElementById('fetch-channel').onclick = fetchChannel
+            document.getElementById('chat-msg').onsubmit = onMsgSubmit
+
+            if ('WebSocket' in window) {
+                console.log('support ws')
+                const {host} = document.location
+                conn = new WebSocket(`ws://${host}/ws`)
+                conn.onopen = function () {
+                    console.log('client: successfully connected')
+                }
+
+                conn.onerror = function (err) {
+                    console.log("client: error with", err)
+                }
+                conn.onmessage = receiveEvent
+
+                conn.onclose = function (event) {
+                    console.log('client: socket closed', event)
+                }
+            }
+        }
+    }
+
+</script>
+</html>
