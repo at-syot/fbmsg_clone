@@ -1,2 +1,6 @@
 fe/node_modules/
 fe/dist/
+be/.idea
+fe/.idea
+
+.DS_Store
