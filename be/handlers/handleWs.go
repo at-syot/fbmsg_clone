@@ -1,44 +1,55 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
-	"log"
-	"net/http"
-
+	"github.com/at-syot/msg_clone/db"
 	"github.com/at-syot/msg_clone/ws"
 	"github.com/google/uuid"
+	"net/http"
 )
+
+type selectUserChannel struct {
+	id          string
+	displayname string
+	creator     bool
+}
 
 func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	queries := r.URL.Query()
 	channelId := queries.Get("channelId")
 	userId := queries.Get("userId")
 
-	u := users.GetByUID(userId)
-	if u == nil {
-		w.WriteHeader(http.StatusNotFound)
+	ctx := r.Context()
+	query := `select c.id, c.displayname, cms.creator from channels as c
+    inner join channel_members cms on c.id = cms.channelId
+    where c.id = $1 and cms.userid = $2`
+
+	result := selectUserChannel{}
+	if err := db.QueryRowContext(
+		ctx,
+		query,
+		[]any{channelId, userId},
+		&result.id, &result.displayname, &result.creator,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	chanUUID, err := uuid.Parse(channelId)
-	if err != nil {
-		log.Printf("uuid.FromBytes err - %s", err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	channel := userChannels.GetUserChannelWith_UserAndChannelId(u, chanUUID)
-	if channel == nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
+	channelUUID := uuid.MustParse(result.id)
+	channel := channelById.GetById(channelUUID)
 
-	// upgrade http protocal to ws
 	// get ws connection
 	conn, err := wsUpgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
 	}
-	fmt.Println("new connection")
+	fmt.Printf("connected to channel %s\n", channelUUID)
 
 	// wrap conn with _Client
 	client := &ws.Client{
@@ -46,7 +57,6 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		Channel: channel,
 		WSConn:  conn,
 		Egress:  make(chan ws.Message),
-		User:    u,
 	}
 	channel.Clients[client] = true
 

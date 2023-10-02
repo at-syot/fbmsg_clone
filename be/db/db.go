@@ -88,6 +88,19 @@ func (c Conn) QueryRow(query string, args []any, dest ...any) error {
 	return nil
 }
 
+func QueryRowContext(ctx context.Context, query string, args []any, dest ...any) error {
+	conn, err := DB.Conn(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	if err = conn.QueryRowContext(ctx, query, args...).Scan(dest...); err != nil {
+		return err
+	}
+	return nil
+}
+
 type RowReaderFn func(rows *sql.Rows) error
 
 func QueryContext(ctx context.Context, query string, args []any, reader RowReaderFn) error {

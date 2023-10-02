@@ -11,10 +11,8 @@ type BaseResponse struct {
 }
 
 var (
-	channels     = ws.Channels{}
-	users        = ws.Users{}
-	userChannels = ws.UserChannels{}
-	userClients  = ws.UserClient{}
+	channelById = ws.ChannelById{}
+	users       = ws.Users{}
 
 	wsUpgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,

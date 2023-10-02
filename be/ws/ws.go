@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -40,15 +41,34 @@ type (
 	}
 )
 
-type Channels []*Channel
 type Users []*User
-type UserChannels map[*User]*[]*Channel
-type UserClient map[*User]*Client
+type ChannelById map[uuid.UUID]*Channel
 
-func (users *Users) NewUser(uname string) *User {
-	u := &User{Id: uuid.New(), Username: uname}
-	*users = append(*users, u)
-	return u
+// ------------
+
+func NewChannel(id uuid.UUID) *Channel {
+	return &Channel{
+		Id:      id,
+		Clients: make(map[*Client]bool),
+	}
+}
+
+// ---------------
+
+func (chs ChannelById) GetById(id uuid.UUID) *Channel {
+	for chanId, ch := range chs {
+		if chanId == id {
+			return ch
+		}
+	}
+
+	return nil
+}
+
+func (chs ChannelById) Print() {
+	for chanId, ch := range chs {
+		fmt.Printf("channelId %s, ch %v\n", chanId, ch)
+	}
 }
 
 func (users *Users) MatchBy(uname string) []*User {
@@ -61,120 +81,6 @@ func (users *Users) MatchBy(uname string) []*User {
 	return matchedUsers
 }
 
-func (users *Users) GetByUName(uname string) *User {
-	for _, u := range *users {
-		if u.Username == uname {
-			return u
-		}
-	}
-	return nil
-}
-
-func (users *Users) GetByUID(id string) *User {
-	for _, u := range *users {
-		if u.Id.String() == id {
-			return u
-		}
-	}
-	return nil
-}
-
-func (users *Users) GetUserContacts(id uuid.UUID) []*User {
-	userContacts := []*User{}
-	for _, u := range *users {
-		if u.Id != id {
-			userContacts = append(userContacts, u)
-		}
-	}
-
-	return userContacts
-}
-
-func (users *Users) Print() {
-	for _, u := range *users {
-		log.Printf("adress: %p\nuser %+v\n", u, u)
-	}
-}
-
-// ----------------------
-
-func (uc UserClient) RegisterNewClient(u *User) *Client {
-	client := &Client{
-		Id:      uuid.New(),
-		WSConn:  nil,
-		Egress:  make(chan Message),
-		Channel: nil,
-		User:    u,
-	}
-	uc[u] = client
-
-	return client
-}
-
-func (uc UserClient) Print() {
-	for user, client := range uc {
-		log.Printf("u: {%s}, client: %+v \n", user.Id.String(), client)
-	}
-}
-
-// ----------------
-
-// ----------- Channel --------
-func (cs *Channels) AddEmptyChannel(name string) *Channel {
-	c := &Channel{
-		Id:   uuid.New(),
-		Name: name,
-	}
-	*cs = append(*cs, c)
-	return c
-}
-
-func (cs *Channels) GetChannels() []*Channel {
-	return *cs
-}
-
-// ----------- UserChannels
-
-func (uc UserChannels) AddChannelForUser(u *User, ch *Channel) {
-	uChans, ok := uc[u]
-	if !ok {
-		uChans = &[]*Channel{}
-	}
-	*uChans = append(*uChans, ch)
-	uc[u] = uChans
-}
-
-func (uc UserChannels) GetUserChannels(u *User) *[]*Channel {
-	return uc[u]
-}
-
-func (uc UserChannels) GetUserChannelWith_UserAndChannelId(u *User, chanId uuid.UUID) *Channel {
-	chans, ok := uc[u]
-	if !ok {
-		return nil
-	}
-
-	for _, ch := range *chans {
-		if ch.Id == chanId {
-			return ch
-		}
-	}
-	return nil
-}
-
-func (uc UserChannels) Print(u *User) {
-	userChannels, ok := uc[u]
-	if !ok {
-		return
-	}
-
-	log.Printf("for user {%s} \n\n", u.Username)
-	for _, ch := range *userChannels {
-		log.Printf("address %p\nchan %+v\n", ch, ch)
-	}
-}
-
-// ReceiveMessage to receive connected's messages
 func (c *Client) ReceiveMessage() {
 	for {
 		msgType, p, err := c.WSConn.ReadMessage()
@@ -198,7 +104,6 @@ func (c *Client) ReceiveMessage() {
 	}
 }
 
-// send message
 func (c *Client) SendingMessage() {
 	for {
 		select {
