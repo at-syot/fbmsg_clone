@@ -1,0 +1,12 @@
+version: "version"
+
+services:
+  db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=msg_clone
+      - POSTGRES_USER=aot
+    restart: always

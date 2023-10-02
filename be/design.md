@@ -63,43 +63,23 @@ sequenceDiagram
 ```
 
 ```mermaid
-classDiagram
-    class Hub{
-        map[*Channel]bool channels
-        
-        CreateChannel()
-        DeleteChannel()
-    }
+erDiagram
+    User ||--o{ ChannelMember : place
+    Channel ||--o{ ChannelMember : place
     
-    class Channel{
-        string Id
-        map[*Client]bool Clients
-        
-        AddClient()
-        RemoveClient()
+    User {
+        UUID id
+        string username 
     }
-    
-    class Client{
-        map[*Channel]bool channels
-        *WsConn conn
-        chan[Message] egress
-        
-        +RegisterConn(*WsConn)
-        ReceiveMessage()
-        WriteMessage()
+    Channel {   
+        UUID id
+        UUID creatorId
+        string displayName 
     }
-
-    class Message{
-        string type
-        string message 
+    ChannelMember {
+        UUID userId
+        UUID channelId
+        creator boolean
+        Datetime created_at
     }
-    
-```
-
-
-```mermaid
-sequenceDiagram
-   client->>+server: create user || login
-   Note right of server: 
-   
 ```
