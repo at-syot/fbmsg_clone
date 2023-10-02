@@ -1,14 +1,18 @@
 <script>
-  import { userStore } from '../store/app/user-store.js'
-  import { usernameDialogStore } from '../store/ui/username-dialog.js'
+  import {userStore} from '../store/app/user-store.js'
+  import {usernameDialogStore} from '../store/ui/username-dialog.js'
 
   let containerCls;
   let username;
   $: containerCls = `w-[25%] h-fit bg-slate-900 border border-gray-400 shadow mx-auto mt-10 left-0 right-0 rounded p-4 ${$usernameDialogStore ? "absolute" : "hidden"}`
 
   async function onSubmit() {
-    const body = JSON.stringify({ username })
-    const res = await fetch('http://localhost:3000/user', { method: 'POST', body })
+    const body = JSON.stringify({username})
+    const res = await fetch('http://localhost:3000/user', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body
+    })
     const resJson = await res.json()
     if (!res.ok) {
       alert(`register user err ${await res.text()}`)

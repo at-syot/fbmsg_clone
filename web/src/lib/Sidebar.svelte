@@ -24,8 +24,13 @@
   <button on:click={onCreateChannelClick}>+ Create Channel</button>
 </div>
 
-<input bind:value={searchValue} on:input={onSearchInput} type="text" placeholder="Search (cmd + K)"
-       class="outline-none p-2 w-full rounded bg-slate-700 focus:outline-blue-400 focus:outline-1">
+<input
+  bind:value={searchValue}
+  on:input={onSearchInput} type="text"
+  on:focusin={() => console.log('focus in')}
+  on:focusout={() => console.log('focus out')}
+  placeholder="Search (cmd + K)"
+  class="outline-none p-2 w-full rounded bg-slate-700 focus:outline-blue-400 focus:outline-1">
 
 {#if searchValue && searchValue.length > 0}
   <SearchingContacts users={users}/>
