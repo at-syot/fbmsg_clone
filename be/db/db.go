@@ -55,6 +55,8 @@ func ExecWithTx(ctx context.Context, executeFn ExecutorFn) error {
 		log.Printf("DB: commiting err - %s\n", err.Error())
 		return err
 	}
+
+	log.Println("DB: Tx committed successfully")
 	return nil
 }
 
@@ -83,5 +85,37 @@ func (c Conn) QueryRow(query string, args []any, dest ...any) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+type RowReaderFn func(rows *sql.Rows) error
+
+func QueryContext(ctx context.Context, query string, args []any, reader RowReaderFn) error {
+	conn, err := DB.Conn(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	rows, err := conn.QueryContext(ctx, query, args...)
+	if err != nil {
+		log.Printf("DB: query context err - %s\n", err)
+		return err
+	}
+
+	for rows.Next() {
+		if err := reader(rows); err != nil {
+			break
+		}
+	}
+
+	if err = rows.Close(); err != nil {
+		return err
+	}
+
+	if err = rows.Err(); err != nil {
+		return err
+	}
+
 	return nil
 }
