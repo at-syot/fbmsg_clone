@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/at-syot/msg_clone/db"
+	"github.com/at-syot/msg_clone/ws"
+	"github.com/google/uuid"
 	"net/http"
 
 	"github.com/at-syot/msg_clone/libs"
@@ -92,6 +94,9 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	channelUUID := uuid.MustParse(newChannelId)
+	channelById[channelUUID] = ws.NewChannel(channelUUID)
 
 	res := CreateChannelRes{
 		ChannelId:        newChannelId,
