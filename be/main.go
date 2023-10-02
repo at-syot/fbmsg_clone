@@ -1,14 +1,22 @@
 package main
 
 import (
+	"log"
+	"net/http"
+
+	"github.com/at-syot/msg_clone/db"
 	"github.com/at-syot/msg_clone/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
-	"log"
-	"net/http"
+	_ "github.com/lib/pq"
 )
 
 func main() {
+	err := db.Init()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	//handlers.MockData()
 	r := chi.NewRouter()
 	r.Use(cors.Handler(
