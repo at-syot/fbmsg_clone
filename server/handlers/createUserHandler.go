@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/at-syot/msg_clone/db"
-	"github.com/google/uuid"
 	"net/http"
 
 	"github.com/at-syot/msg_clone/libs"
@@ -21,13 +20,6 @@ type (
 	}
 )
 
-type (
-	User struct {
-		ID       uuid.UUID `db:"id"`
-		Username string    `db:"username"`
-	}
-)
-
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	req := CreateUserReq{}
 	if err := libs.ReadReqBody(r, &req); err != nil {
@@ -35,14 +27,14 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := User{}
+	user := db.User{}
 	ctx := r.Context()
 	err := db.ExecWithTx(ctx, func(conn db.Conn) error {
 		userQuery := `SELECT * FROM users WHERE username = $1`
 		if err := conn.QueryRow(
 			userQuery,
 			[]any{req.Username},
-			&user.ID, &user.Username,
+			&user.Id, &user.Username,
 		); err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
 				return err
@@ -52,7 +44,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 			if err := conn.QueryRow(
 				insertQuery,
 				[]any{req.Username},
-				&user.ID, &user.Username,
+				&user.Id, &user.Username,
 			); err != nil {
 				return err
 			}
@@ -65,5 +57,5 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	libs.WriteOKRes(w, CreateUserResp{UserId: user.ID.String(), Username: user.Username})
+	libs.WriteOKRes(w, CreateUserResp{UserId: user.Id.String(), Username: user.Username})
 }

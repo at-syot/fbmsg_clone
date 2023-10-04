@@ -44,7 +44,7 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	channelUUID := uuid.MustParse(result.id)
 	channel := channelById.GetById(channelUUID)
 
-	// get ws connection
+	// upgrade http to websocket protocol
 	conn, err := wsUpgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return

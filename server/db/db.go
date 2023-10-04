@@ -125,7 +125,6 @@ func QueryContext(ctx context.Context, query string, args []any, reader RowReade
 	if err = rows.Close(); err != nil {
 		return err
 	}
-
 	if err = rows.Err(); err != nil {
 		return err
 	}

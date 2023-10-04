@@ -17,7 +17,6 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	//handlers.MockData()
 	r := chi.NewRouter()
 	r.Use(cors.Handler(
 		cors.Options{

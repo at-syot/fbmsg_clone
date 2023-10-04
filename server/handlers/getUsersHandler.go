@@ -1,26 +1,33 @@
 package handlers
 
 import (
+	"database/sql"
+	"github.com/at-syot/msg_clone/db"
 	"github.com/at-syot/msg_clone/libs"
 	"net/http"
 )
 
-type GetUserRespUser struct {
-	Id   string `json:"id"`
-	Name string `json:"username"`
-}
 type GetUserResp struct {
-	Users []GetUserRespUser `json:"users"`
+	Users []db.User `json:"users"`
 }
 
 func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	uname := query.Get("username")
+	uname := r.URL.Query().Get("username")
 
-	res := GetUserResp{Users: []GetUserRespUser{}}
-	for _, u := range users.MatchBy(uname) {
-		res.Users = append(res.Users, GetUserRespUser{Id: u.Id.String(), Name: u.Username})
-	}
+	ctx := r.Context()
+	res := GetUserResp{Users: make([]db.User, 0)}
+	query := `
+		SELECT * FROM users 
+		WHERE username LIKE '%' || $1 || '%'`
+	db.QueryContext(ctx, query, []any{uname}, func(rows *sql.Rows) error {
+		u := db.User{}
+		if err := rows.Scan(&u.Id, &u.Username); err != nil {
+			return err
+		}
+
+		res.Users = append(res.Users, u)
+		return nil
+	})
 
 	libs.WriteOKRes(w, &res)
 }
