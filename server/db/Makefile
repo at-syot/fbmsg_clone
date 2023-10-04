@@ -11,5 +11,5 @@ migrate_fix:
 	migrate -path $(MG_PATH) -database $(URL) force $(version)
 
 migrate_create:
-	migrate create -ext sql -dir db/migration -seq $(name)
+	migrate create -ext sql -dir $(MG_PATH) -seq $(name)
 
