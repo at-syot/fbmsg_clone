@@ -7,6 +7,9 @@ migrate_up:
 migrate_down:
 	migrate -path $(MG_PATH) -database $(URL) -verbose down
 
+migrate_down_latest:
+	migrate -path $(MG_PATH) -database $(URL) -verbose down 1
+
 migrate_fix:
 	migrate -path $(MG_PATH) -database $(URL) force $(version)
 
