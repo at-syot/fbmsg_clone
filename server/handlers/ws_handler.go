@@ -25,7 +25,6 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	query := `select c.id, c.displayname, cms.creator from channels as c
     inner join channel_members cms on c.id = cms.channelId
     where c.id = $1 and cms.userid = $2`
-
 	result := selectUserChannel{}
 	if err := db.QueryRowContext(
 		ctx,
@@ -51,14 +50,9 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("connected to channel %s\n", channelUUID)
 
-	// wrap conn with _Client
-	client := &ws.Client{
-		Id:      uuid.New(),
-		Channel: channel,
-		WSConn:  conn,
-		Egress:  make(chan ws.Message),
-	}
-	channel.Clients[client] = true
+	// wrap conn with Client
+	client := ws.NewClient(channel, conn)
+	channel.AddClient(client)
 
 	go client.ReceiveMessage()
 	go client.SendingMessage()
