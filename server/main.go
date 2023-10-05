@@ -36,7 +36,7 @@ func main() {
 	r.Get("/users", handlers.GetUsersHandler)
 	r.Get("/users/{uid}/channels", handlers.GetUserChannelsHandler)
 	r.Post("/channels", handlers.CreateChannel)
-	r.Post("/channels/{cid}/messages", handlers.GetChannelMessagesHandler)
+	r.Get("/channels/{cid}/messages", handlers.GetChannelMessagesHandler)
 	r.Get("/ws", handlers.WebsocketHandler)
 
 	log.Println("server start pn port :3000")
