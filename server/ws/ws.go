@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"log"
-	"strconv"
 	"sync"
 )
 
@@ -16,9 +15,12 @@ import (
 
 type (
 	Message struct {
-		Id          string
-		MessageType string
-		Message     string
+		Id          string `json:"id"`
+		Event       string `json:"event"`
+		SenderId    string `json:"senderId"`
+		MessageType int    `json:"messageType"`
+		Message     string `json:"message"`
+		CreatedAt   string `json:"createdAt"`
 	}
 
 	Channel struct {
@@ -102,29 +104,23 @@ func (c *Client) ReceiveMessage() {
 		}
 
 		log.Printf("receive message %s\n", string(p))
-		if err = c.saveMessageDB(ctx, p); err != nil {
+		message, err := c.saveMessageDB(ctx, p)
+		if err != nil {
 			log.Println(err)
 			return
 		}
 
-		c.Egress <- Message{
-			Id:          uuid.New().String(),
-			MessageType: strconv.Itoa(msgType),
-			Message:     string(p),
-		}
+		message.MessageType = msgType
+		c.Egress <- message
 	}
 }
 
-func (c *Client) saveMessageDB(ctx context.Context, p []byte) error {
-	parsedMessage := struct {
-		SenderId string `json:"senderId"`
-		Event    string `json:"event"`
-		Content  string `json:"message"`
-	}{}
+func (c *Client) saveMessageDB(ctx context.Context, p []byte) (Message, error) {
+	parsedMessage := Message{}
 	err := json.Unmarshal(p, &parsedMessage)
 	if err != nil {
 		customErr := errors.New("MESSAGE RECEIVED: message format is invalid")
-		return errors.Join(err, customErr)
+		return Message{}, errors.Join(err, customErr)
 	}
 
 	err = db.ExecWithTx(ctx, func(conn db.Conn) error {
@@ -134,13 +130,34 @@ func (c *Client) saveMessageDB(ctx context.Context, p []byte) error {
 				senderId,
 			  content
 			) VALUES ($1, $2, $3)`
-		if err := conn.Execute(query, c.Channel.Id.String(), parsedMessage.SenderId, parsedMessage.Content); err != nil {
+		if err := conn.Execute(
+			query,
+			c.Channel.Id.String(),
+			parsedMessage.SenderId,
+			parsedMessage.Message,
+		); err != nil {
+			return err
+		}
+
+		lastInsertQuery := `
+			select ms.id, ms.createdAt
+			from messages as ms
+			where ms.channelId = $1
+			order by ms.createdAt DESC
+			limit 1`
+		err = conn.QueryRow(
+			lastInsertQuery,
+			[]any{c.Channel.Id.String()},
+			&parsedMessage.Id,
+			&parsedMessage.CreatedAt,
+		)
+		if err != nil {
 			return err
 		}
 		return nil
 	})
 
-	return err
+	return parsedMessage, nil
 }
 
 func (c *Client) SendingMessage() {
@@ -151,9 +168,15 @@ func (c *Client) SendingMessage() {
 				return
 			}
 
+			msgBytes, err := json.Marshal(message)
+			if err != nil {
+				log.Printf("marchal msg err - %s\n", err.Error())
+				return
+			}
+
 			log.Printf("reply message %+v\n", message)
 			for client, _ := range c.Channel.Clients {
-				if err := client.WSConn.WriteMessage(websocket.TextMessage, []byte(message.Message)); err != nil {
+				if err := client.WSConn.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
 					log.Printf("writting message err %s\n", err.Error())
 				}
 			}

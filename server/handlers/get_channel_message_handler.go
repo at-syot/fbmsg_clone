@@ -16,8 +16,8 @@ type (
 	}
 
 	getChanMsgResponseRow struct {
-		MessageId string `json:"messageId"`
-		SenderId  string `json:"sender"`
+		MessageId string `json:"id"`
+		SenderId  string `json:"senderId"`
 		Username  string `json:"username"`
 		Message   string `json:"message"`
 		CreatedAt string `json:"createdAt"`

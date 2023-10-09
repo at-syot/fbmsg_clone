@@ -36,6 +36,7 @@ func main() {
 	r.Get("/users", handlers.GetUsersHandler)
 	r.Get("/users/{uid}/channels", handlers.GetUserChannelsHandler)
 	r.Post("/channels", handlers.CreateChannel)
+	r.Get("/channels/{cid}", handlers.GetChannelById)
 	r.Get("/channels/{cid}/messages", handlers.GetChannelMessagesHandler)
 	r.Get("/ws", handlers.WebsocketHandler)
 

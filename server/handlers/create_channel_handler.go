@@ -56,8 +56,8 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 
 		// creating channel
 		if err := conn.QueryRow(
-			`INSERT INTO channels (displayname) VALUES ('') RETURNING id`,
-			[]any{}, &newChannelId,
+			`INSERT INTO channels (createdBy) VALUES ($1) RETURNING id`,
+			[]any{req.CreatorId}, &newChannelId,
 		); err != nil {
 			return err
 		}
