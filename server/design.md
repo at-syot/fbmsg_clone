@@ -66,6 +66,7 @@ sequenceDiagram
 erDiagram
     User ||--o{ ChannelMember : place
     Channel ||--o{ ChannelMember : place
+    Channel ||--o{ Message : contains
     
     User {
         UUID id
@@ -75,6 +76,7 @@ erDiagram
         UUID id
         UUID creatorId
         string displayName 
+        ChannelType type
     }
     ChannelMember {
         UUID userId
@@ -82,4 +84,11 @@ erDiagram
         creator boolean
         Datetime created_at
     }
+    
+    Message {
+        serial id
+        int channelId
+        string content
+        Datetime created_at 
+    } 
 ```
