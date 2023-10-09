@@ -1,7 +1,9 @@
 <script>
+
   import throttle from 'lodash.throttle'
-  import SidebarContactList from "./SidebarChannelsList.svelte";
+  import SidebarChannelsList from "./SidebarChannelsList.svelte";
   import SearchingContacts from "./SearchingContacts.svelte";
+  import {uiSidebarDisplayModeStore} from '../store/ui/sidebar-display-mode.js'
 
   let searchValue;
   let users;
@@ -13,6 +15,14 @@
 
     users = resJson.users
   }, 300)
+
+  function onSearchKeydown(e) {
+    const {keyCode} = e
+    if (keyCode === 27) {
+      searchValue = ''
+      uiSidebarDisplayModeStore.setSidebarDisplayMode('channels_list')
+    }
+  }
 
   function onCreateChannelClick(e) {
     console.log(e)
@@ -27,13 +37,13 @@
 <input
   bind:value={searchValue}
   on:input={onSearchInput} type="text"
-  on:focusin={() => console.log('focus in')}
-  on:focusout={() => console.log('focus out')}
+  on:keydown={onSearchKeydown}
+  on:focus={() => uiSidebarDisplayModeStore.setSidebarDisplayMode('search_contacts') }
   placeholder="Search (cmd + K)"
   class="outline-none p-2 w-full rounded bg-slate-700 focus:outline-blue-400 focus:outline-1">
 
-{#if searchValue && searchValue.length > 0}
-  <SearchingContacts users={users}/>
+{#if $uiSidebarDisplayModeStore === "channels_list" }
+  <SidebarChannelsList/>
 {:else}
-  <SidebarContactList/>
+  <SearchingContacts users={users}/>
 {/if}

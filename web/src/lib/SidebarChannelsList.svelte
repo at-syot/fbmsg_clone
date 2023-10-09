@@ -1,45 +1,34 @@
 <script>
-  import {onDestroy, onMount} from "svelte";
+  // @ts-nocheck
+  import {onDestroy} from "svelte";
   import {userStore} from '../store/app/user-store.js'
-  import {websocketStore} from '../store/app/websocket-store.js'
+  import {websocketStore, websocketMessageStore} from '../store/app/websocket-store.js'
+  import {channelsStore} from '../store/app/channels-store.js'
 
   let userId = ""
-  let channels = [];
-
-  async function fetchChannels(userId) {
-    if (!userId) return
-    const url = `http://localhost:3000/users/${userId}/channels`
-    const res = await fetch(url)
-    if (!res.ok) {
-      console.log('err -', await res.text())
-      return
-    }
-    const resJson = await res.json()
-    channels = resJson.channels
+  $: if ($userStore && $userStore.userId) {
+    userId = $userStore.userId
   }
 
-  const unsubscribeUserStore = userStore.subscribe((udata) => {
-    if (!udata) return
-    userId = udata.userId
-    fetchChannels(udata.userId)
-  })
+  async function onClick(channel) {
+    websocketMessageStore.clearMessage()
+    await channelsStore.setActiveChannel(channel.id)
+    websocketStore.joinChannel(channel.id, userId)
+  }
 
-  onDestroy(() => {
-    unsubscribeUserStore()
-    websocketStore.closeChannel()
-  })
-
-  function onClick(chanData) {
-    const { id } = chanData
-    websocketStore.joinChannel(id, userId)
+  function getChannelCls(channel) {
+    const {active} = channel
+    let cls = "p-2 text-white flex flex-col rounded hover:bg-slate-800"
+    cls += " " + (active ? "bg-slate-800" : "")
+    return cls
   }
 </script>
 
 <div class="pt-4">
-  {#each channels as channel (channel.id)}
-    <a class="p-2 text-white flex flex-col rounded hover:bg-slate-800" on:click={() => onClick(channel)}>
-      <p class="font-semibold">{ channel.channelName }</p>
-      <p class="text-slate-700">You: latest msg</p>
+  {#each $channelsStore as channel (channel.id)}
+    <a class={getChannelCls(channel)} on:click={() => onClick(channel)}>
+      <p class="font-semibold ">{channel.displayname}</p>
+      <p class="text-slate-700 truncate">{channel.latestMsgItem.message} * {channel.latestMsgItem.createdAt}</p>
     </a>
   {/each}
 </div>

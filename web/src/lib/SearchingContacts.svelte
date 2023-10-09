@@ -1,33 +1,19 @@
 <script>
   import {userStore} from '../store/app/user-store.js'
-
+  import {uiSidebarDisplayModeStore} from '../store/ui/sidebar-display-mode.js'
+  import {channelsStore} from '../store/app/channels-store.js'
 
   export let users;
-  let user = null
-  userStore.subscribe((_user) => {
-    if (_user) user = _user
-  })
-
-  $: if (user && users) {
-    users = users.filter(u => u.id !== user.userId)
+  $: if ($userStore && users) {
+    users = users.filter(u => u.id !== $userStore.userId)
   }
 
+  /** onClick
+   * click to create channel, and
+   */
   async function onClick(selectedUser) {
-    console.log('selected user', selectedUser.id)
-    console.log('user', user.userId)
-
-    // create channels
-    const endpoint = "http://localhost:3000/channels"
-    const body = JSON.stringify({creatorId: user.userId, userIds: [selectedUser.id]})
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: {"Content-Type": "application/json"},
-      body
-    })
-    if (!res.ok) {
-      alert(`creating channel err - ${await res.text()}`)
-      return
-    }
+    await channelsStore.createAndAddNewChannel($userStore.userId, [selectedUser.id])
+    uiSidebarDisplayModeStore.setSidebarDisplayMode('channels_list')
   }
 </script>
 

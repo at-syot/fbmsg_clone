@@ -1,6 +1,7 @@
 <script>
   import {userStore} from '../store/app/user-store.js'
   import {usernameDialogStore} from '../store/ui/username-dialog.js'
+  import {channelsStore} from '../store/app/channels-store.js'
 
   let containerCls;
   let username;
@@ -20,6 +21,10 @@
     }
 
     userStore.persist(resJson)
+
+    const {userId} = resJson
+    await channelsStore.fetchChannels(userId)
+
     usernameDialogStore.close()
   }
 </script>
