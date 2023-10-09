@@ -1,6 +1,6 @@
-fe/node_modules/
-fe/dist/
-be/.idea
-fe/.idea
+web/node_modules/
+web/dist/
+server/.idea
+web/.idea
 
 .DS_Store
