@@ -45,9 +45,9 @@
   }
 </script>
 
-<div class="flex flex-row justify-between pt-2 pb-2">
-  <label class="font-semibold text-[20px]">Chats</label>
-  <button on:click={onCreateChannelClick}>+ Create Channel</button>
+<div class="flex flex-row justify-center md:justify-between pt-2 pb-2 ">
+  <label class="font-semibold text-[20px] hidden md:inline-block">Chats</label>
+  <button on:click={onCreateChannelClick} class="rounded-[50%] hover:bg-slate-700 p-3 w-[32px] h-[32px] flex justify-center items-center md:rounded md:w-fit md:h-fit md:p-0 md:pr-2 md:pl-2"> + {" "} <span class="hidden md:inline">Create Channel</span></button>
 </div>
 
 <input
@@ -57,7 +57,7 @@
   on:keydown={onSearchKeydown}
   on:focus={onSearchInputFocusIn}
   placeholder="Search (cmd + K)"
-  class="outline-none p-2 w-full rounded bg-slate-700 focus:outline-blue-400 focus:outline-1">
+  class="outline-none p-2 w-full rounded bg-slate-700 focus:outline-blue-400 focus:outline-1 hidden md:block">
 
 {#if $uiSidebarDisplayModeStore === "channels_list" }
   <SidebarChannelsList/>

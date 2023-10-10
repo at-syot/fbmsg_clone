@@ -10,7 +10,6 @@
   import { usernameDialogStore } from './store/ui/username-dialog.js'
   import { channelsStore} from './store/app/channels-store'
   import UsernameDialog from "./lib/UsernameDialog.svelte";
-  import { get} from 'svelte/store'
 
   onMount(() => {
     const udata = userStore.getPersisted()
@@ -21,12 +20,8 @@
   })
 
   $: if ($userStore && $userStore.userId) {
-    console.log('trigger')
     channelsStore.fetchChannels($userStore.userId)
-      .then(() => {
-        // using get method here
-        // prevent infinite reactive -> DONT know why!!
-        const channels = get(channelsStore)
+      .then((channels) => {
         const activeCh = channelsStore.getActiveChannel(channels)
         if (activeCh) {
           channelsStore.setActiveChannel(activeCh.id)
@@ -40,7 +35,7 @@
   <UsernameDialog />
 
   <!--    sidebar -->
-  <div class="min-w-[360px] max-w-[360px] flex flex-col p-3 border-r border-gray-700">
+  <div class="md:w-[360px] md:max-w-[360px] flex flex-col p-3 border-r border-gray-700 max-w-[80px] w-[80px]">
     <Sidebar />
   </div>
   <!--    channels -->

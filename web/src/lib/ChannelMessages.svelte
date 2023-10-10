@@ -62,7 +62,7 @@
   <a class="cursor-pointer">* * *</a>
 </section>
 
-<div bind:this={messagesBox} class="grow mt-3 flex flex-col gap-4 pt-6 pb-6 overflow-y-scroll ">
+<div bind:this={messagesBox} class="grow mt-3 flex flex-col gap-4 pt-6 pb-6 overflow-y-auto">
   {#each messages as m}
     <p id={m.id} class={messageCls(m)}>{m.message}</p>
   {/each}
