@@ -25,7 +25,7 @@ function createChannelsStore() {
       });
     },
     async setActiveChannel(channelId) {
-      const messages = await this.fetchChannelMessages(channelId)
+      const messages = await fetchChannelMessages(channelId)
       update(
         _.pipe(
           _.map((ch) => {
@@ -54,19 +54,37 @@ function createChannelsStore() {
       this.persist()
     },
     
-    /** - create new channel
+    /**
+     * @function getChannelByUsers
+     * CHEATING here, move this login to backend
+     *
+     * result mush have only one channel, if not: have duplicated channels
+     */
+    getChannelByUsers(userIds, channels) {
+      const existingChans = channels.filter(ch => ch.users.every(u => userIds.indexOf(u.id) !== -1))
+      if (existingChans.length > 1) {
+        throw Error('found duplicated channels')
+      }
+      return existingChans[0]
+    },
+    
+    /**
+     * @function createAndAddNewChannel
+     *  - create new channel
      *  - fetch channel info item
      *  - add to store
-     *  TODO: set default channelItem's values
      */
     async createAndAddNewChannel(creatorId, userIds) {
       const {channelId} = await createChannel(creatorId, userIds)
       const chanItem = await fetchChannelById(channelId)
       const chanItems = [withDefaultProps(creatorId)(chanItem)]
+      
       update(_.concat(chanItems))
+      
+      return chanItem
     },
+    
     pushChannelMessage(channelId, messageItem) {
-      console.log('push ', channelId, messageItem)
       if (!channelId || _.isEmpty(messageItem)) return;
       update(
         _.map((ch) => {
@@ -76,28 +94,34 @@ function createChannelsStore() {
           return ch;
         })
       );
+      
       this.persist();
     },
+    
+    /**
+     * @function fetchChannels
+     * - fetch user channels
+     * - set default props
+     * - merge with persisted channels if need
+     */
     async fetchChannels(userId) {
       const channels = await fetchChannels(userId)
-      console.log('channels', channels)
       const mappedDefaultChannels = _.map(withDefaultProps(userId))(channels);
-      localStorage.setItem(
-        PERSISTED_KEY,
-        JSON.stringify(mappedDefaultChannels)
-      );
-      set(mappedDefaultChannels);
-    },
-    async fetchChannelMessages(channelId) {
-      const res = await fetch(
-        `http://localhost:3000/channels/${channelId}/messages`
-      );
-      if (!res.ok) {
-        console.log(`fetch channel messages err - ${await res.text()}`);
-        return;
+      
+      let toSetChans = []
+      const persistedChans = JSON.parse(localStorage.getItem(PERSISTED_KEY))
+      if (persistedChans) {
+        const mergedWithPersistedChs = mappedDefaultChannels.map(ch => {
+          const persistedCh = persistedChans.filter(({ id }) => id === ch.id)[0]
+          return _.merge(ch, persistedCh)
+        })
+        toSetChans = mergedWithPersistedChs
+      } else {
+        toSetChans = mappedDefaultChannels
       }
-      const {messages} = await res.json();
-      return messages;
+      
+      set(toSetChans);
+      this.persist()
     },
   };
 }
@@ -168,6 +192,18 @@ async function fetchChannelById(channelId) {
     return
   }
   return await res.json()
+}
+
+async function fetchChannelMessages(channelId) {
+  const res = await fetch(
+    `http://localhost:3000/channels/${channelId}/messages`
+  );
+  if (!res.ok) {
+    console.log(`fetch channel messages err - ${await res.text()}`);
+    return;
+  }
+  const {messages} = await res.json();
+  return messages;
 }
 
 export const channelsStore = createChannelsStore();

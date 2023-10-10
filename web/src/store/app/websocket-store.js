@@ -34,20 +34,23 @@ function createWebsocketStore() {
     subscribe,
     joinChannel: async function (channelId, userId) {
       this.closeChannel();
-
-      let url = new URL("ws://localhost:3000/ws");
-      url.searchParams.set("channelId", channelId);
-      url.searchParams.set("userId", userId);
-
-      ws = new WebSocket(url);
-      set(ws);
-
-      ws.onopen = function (e) {
-        console.log("connected", e);
-      };
-      ws.onclose = function (e) {
-        console.log("onClose");
-      };
+      
+      return new Promise(resolve => {
+        let url = new URL("ws://localhost:3000/ws");
+        url.searchParams.set("channelId", channelId);
+        url.searchParams.set("userId", userId);
+        
+        ws = new WebSocket(url);
+        set(ws);
+        
+        ws.onopen = function (e) {
+          console.log("connected", e.currentTarget.url);
+          resolve()
+        };
+        ws.onclose = function (e) {
+          console.log("onClose");
+        };
+      })
     },
     closeChannel: function () {
       if (!ws) return;
