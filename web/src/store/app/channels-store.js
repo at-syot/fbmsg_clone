@@ -6,7 +6,7 @@ import {userStore} from "./user-store.js";
 const PERSISTED_KEY = "app-user-channels";
 
 function createChannelsStore() {
-  const {subscribe, set, update} = writable([]);
+  const {subscribe, set, update, get} = writable([]);
   
   return {
     subscribe,
@@ -20,10 +20,27 @@ function createChannelsStore() {
     },
     persist() {
       update((data) => {
-        localStorage.setItem(PERSISTED_KEY, JSON.stringify(data));
+        // remove channel's messages
+        const withoutChanMsgs = _.pipe(
+          _.cloneDeep,
+          _.map(ch => {
+            if (!ch.messages) return ch
+            ch.messages = []
+            return ch
+          }),
+        )(data)
+        
+        localStorage.setItem(PERSISTED_KEY, JSON.stringify(withoutChanMsgs));
         return data;
       });
     },
+    getActiveChannel(channels) {
+      const activeChans = channels.filter(ch => ch.active)
+      if (activeChans.length === 0) return
+      return activeChans[0]
+    },
+    
+    /** @function setActiveChannel */
     async setActiveChannel(channelId) {
       const messages = await fetchChannelMessages(channelId)
       update(
@@ -42,11 +59,10 @@ function createChannelsStore() {
               const {createdAt} = _msgItem;
               return {..._msgItem, createdAt: dayjs(createdAt).format("ddd")}
             })();
+            ch.latestMsgItem = msgItem
+            ch.messages = messages
             
-            return _.pipe(
-              _.set("latestMsgItem", msgItem),
-              _.set("messages", messages)
-            )(ch);
+            return ch
           })
         )
       );
@@ -112,7 +128,7 @@ function createChannelsStore() {
       const persistedChans = JSON.parse(localStorage.getItem(PERSISTED_KEY))
       if (persistedChans) {
         const mergedWithPersistedChs = mappedDefaultChannels.map(ch => {
-          const persistedCh = persistedChans.filter(({ id }) => id === ch.id)[0]
+          const persistedCh = persistedChans.filter(({id}) => id === ch.id)[0]
           return _.merge(ch, persistedCh)
         })
         toSetChans = mergedWithPersistedChs
