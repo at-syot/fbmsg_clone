@@ -6,21 +6,21 @@ function createWebsocketMessageStore() {
 
   return {
     subscribe,
-    registerWS: function (_ws) {
+    registerWS: function(_ws) {
       ws = _ws;
-      ws.onmessage = function (e) {
+      ws.onmessage = function(e) {
         const event = JSON.parse(e.data);
         set(event);
       };
     },
-    unregisterWS: function () {
+    unregisterWS: function() {
       console.log('unregisterWS')
       ws = null;
     },
     clearMessage() {
       set(null)
     },
-    send: function (payload) {
+    send: function(payload) {
       ws.send(JSON.stringify(payload));
     },
   };
@@ -32,27 +32,27 @@ function createWebsocketStore() {
 
   return {
     subscribe,
-    joinChannel: async function (channelId, userId) {
+    joinChannel: async function(channelId, userId) {
       this.closeChannel();
-      
+
       return new Promise(resolve => {
         let url = new URL("ws://localhost:3000/ws");
         url.searchParams.set("channelId", channelId);
         url.searchParams.set("userId", userId);
-        
+
         ws = new WebSocket(url);
         set(ws);
-        
-        ws.onopen = function (e) {
+
+        ws.onopen = function(e) {
           console.log("connected", e.currentTarget.url);
           resolve()
         };
-        ws.onclose = function (e) {
+        ws.onclose = function(e) {
           console.log("onClose");
         };
       })
     },
-    closeChannel: function () {
+    closeChannel: function() {
       if (!ws) return;
       ws.close();
     },

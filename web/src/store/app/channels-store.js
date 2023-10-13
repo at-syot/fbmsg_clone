@@ -1,13 +1,17 @@
-import {writable} from "svelte/store";
+import { writable } from "svelte/store";
 import _ from "lodash/fp";
 import dayjs from "dayjs";
-import {userStore} from "./user-store.js";
+import { get } from "svelte/store";
+import { userStore } from "./user-store.js";
+import { websocketMessageStore, websocketStore } from "./websocket-store.js";
+import { uiSidebarDisplayModeStore } from "../ui/sidebar-display-store.js";
+import { uiContentPanelDisplayStore } from "../ui/content-pannel-display-store.js";
 
 const PERSISTED_KEY = "app-user-channels";
 
 function createChannelsStore() {
-  const {subscribe, set, update, get} = writable([]);
-  
+  const { subscribe, set, update } = writable([]);
+
   return {
     subscribe,
     getPersisted() {
@@ -23,26 +27,26 @@ function createChannelsStore() {
         // remove channel's messages
         const withoutChanMsgs = _.pipe(
           _.cloneDeep,
-          _.map(ch => {
-            if (!ch.messages) return ch
-            ch.messages = []
-            return ch
-          }),
-        )(data)
-        
+          _.map((ch) => {
+            if (!ch.messages) return ch;
+            ch.messages = [];
+            return ch;
+          })
+        )(data);
+
         localStorage.setItem(PERSISTED_KEY, JSON.stringify(withoutChanMsgs));
         return data;
       });
     },
     getActiveChannel(channels) {
-      const activeChans = channels.filter(ch => ch.active)
-      if (activeChans.length === 0) return
-      return activeChans[0]
+      const activeChans = channels.filter((ch) => ch.active);
+      if (activeChans.length === 0) return;
+      return activeChans[0];
     },
-    
+
     /** @function setActiveChannel */
     async setActiveChannel(channelId) {
-      const messages = await fetchChannelMessages(channelId)
+      const messages = await fetchChannelMessages(channelId);
       update(
         _.pipe(
           _.map((ch) => {
@@ -50,26 +54,26 @@ function createChannelsStore() {
           }),
           _.map((ch) => {
             if (ch.id !== channelId) return ch;
-            
+
             const msgItem = (() => {
               const _msgItem = messages[messages.length - 1];
               if (_.isEmpty(_msgItem))
-                return {id: '', message: "-", createdAt: "-"};
-              
-              const {createdAt} = _msgItem;
-              return {..._msgItem, createdAt: dayjs(createdAt).format("ddd")}
+                return { id: "", message: "-", createdAt: "-" };
+
+              const { createdAt } = _msgItem;
+              return { ..._msgItem, createdAt: dayjs(createdAt).format("ddd") };
             })();
-            ch.latestMsgItem = msgItem
-            ch.messages = messages
-            
-            return ch
+            ch.latestMsgItem = msgItem;
+            ch.messages = messages;
+
+            return ch;
           })
         )
       );
-      
-      this.persist()
+
+      this.persist();
     },
-    
+
     /**
      * @function getChannelByUsers
      * CHEATING here, move this login to backend
@@ -77,43 +81,70 @@ function createChannelsStore() {
      * result mush have only one channel, if not: have duplicated channels
      */
     getChannelByUsers(userIds, channels) {
-      const existingChans = channels.filter(ch => ch.users.every(u => userIds.indexOf(u.id) !== -1))
+      const existingChans = channels.filter(
+        (ch) =>
+          ch.users.every((u) => userIds.indexOf(u.id) !== -1) &&
+          ch.users.length === userIds.length
+      );
       if (existingChans.length > 1) {
-        throw Error('found duplicated channels')
+        throw Error("found duplicated channels");
       }
-      return existingChans[0]
+      return existingChans[0];
     },
-    
+
     /**
      * @function createAndAddNewChannel
      *  - create new channel
      *  - fetch channel info item
      *  - add to store
      */
-    async createAndAddNewChannel(creatorId, userIds) {
-      const {channelId} = await createChannel(creatorId, userIds)
-      const chanItem = await fetchChannelById(channelId)
-      const chanItems = [withDefaultProps(creatorId)(chanItem)]
-      
-      update(_.concat(chanItems))
-      
-      return chanItem
+    async createAndAddNewChannel(creatorId, userIds, displayname) {
+      const existingChan = this.getChannelByUsers(
+        [creatorId, ...userIds],
+        get(channelsStore)
+      );
+      let chanItem = existingChan;
+
+      if (!existingChan) {
+        const { channelId } = await createChannel(
+          creatorId,
+          userIds,
+          displayname
+        );
+        const _chanItem = await fetchChannelById(channelId);
+        const chanItems = [withDefaultProps(creatorId)(_chanItem)];
+
+        update(_.concat(chanItems));
+        chanItem = _chanItem;
+      }
+
+      const { id: chanId } = chanItem;
+      await websocketStore.joinChannel(chanId, creatorId);
+      uiSidebarDisplayModeStore.setSidebarDisplayMode("channels_list");
+      websocketMessageStore.clearMessage();
+      await this.setActiveChannel(chanId);
+      uiContentPanelDisplayStore.setDisplaymode("message");
+
+      return chanItem;
     },
-    
+
     pushChannelMessage(channelId, messageItem) {
       if (!channelId || _.isEmpty(messageItem)) return;
       update(
         _.map((ch) => {
           if (ch.id !== channelId) return ch;
-          ch.latestMsgItem = {...messageItem, createdAt: dayjs(messageItem.createdAt).format("ddd")};
+          ch.latestMsgItem = {
+            ...messageItem,
+            createdAt: dayjs(messageItem.createdAt).format("ddd"),
+          };
           ch.messages.push(messageItem);
           return ch;
         })
       );
-      
+
       this.persist();
     },
-    
+
     /**
      * @function fetchChannels
      * - fetch user channels
@@ -121,44 +152,48 @@ function createChannelsStore() {
      * - merge with persisted channels if need
      */
     async fetchChannels(userId) {
-      const channels = await fetchChannels(userId)
+      const channels = await fetchChannels(userId);
       const mappedDefaultChannels = _.map(withDefaultProps(userId))(channels);
-      
-      let toSetChans = []
-      const persistedChans = JSON.parse(localStorage.getItem(PERSISTED_KEY))
+
+      let toSetChans = [];
+      const persistedChans = JSON.parse(localStorage.getItem(PERSISTED_KEY));
       if (persistedChans) {
-        const mergedWithPersistedChs = mappedDefaultChannels.map(ch => {
-          const persistedCh = persistedChans.filter(({id}) => id === ch.id)[0]
-          return _.merge(ch, persistedCh)
-        })
-        toSetChans = mergedWithPersistedChs
+        const mergedWithPersistedChs = mappedDefaultChannels.map((ch) => {
+          const persistedCh = persistedChans.filter(
+            ({ id }) => id === ch.id
+          )[0];
+          return _.merge(ch, persistedCh);
+        });
+        toSetChans = mergedWithPersistedChs;
       } else {
-        toSetChans = mappedDefaultChannels
+        toSetChans = mappedDefaultChannels;
       }
-      
+
       set(toSetChans);
-      this.persist()
+      this.persist();
+
+      return toSetChans;
     },
   };
 }
 
 function withDefaultProps(userId) {
   const displayname = (channel) => {
-    const {displayname} = channel
-    if (displayname) return displayname
-    
+    const { displayname } = channel;
+    if (displayname) return displayname;
+
     // users.length === 2 --> private chat
-    const {users} = channel
+    const { users } = channel;
     if (users.length === 2) {
-      const {username} = users.filter(u => u.id !== userId)[0]
-      return username
+      const { username } = users.filter((u) => u.id !== userId)[0];
+      return username;
     }
-    
-    return users.map(u => u.username).join(' <> ')
-  }
-  
+
+    return users.map((u) => u.username).join(" <> ");
+  };
+
   return (channel) => {
-    const setDisplayName = _.set('displayname', displayname(channel))
+    const setDisplayName = _.set("displayname", displayname(channel));
     const setUnActive = _.set("active", false);
     const setEmptyMessages = _.set("messages", []);
     const setLatestMessage = _.set("latestMsgItem", {
@@ -171,23 +206,23 @@ function withDefaultProps(userId) {
       setLatestMessage,
       setEmptyMessages
     );
-    return setDefaultChannelProps(channel)
-  }
+    return setDefaultChannelProps(channel);
+  };
 }
 
-async function createChannel(creatorId, userIds) {
-  const endpoint = "http://localhost:3000/channels"
-  const body = JSON.stringify({creatorId, userIds})
+async function createChannel(creatorId, userIds, displayname) {
+  const endpoint = "http://localhost:3000/channels";
+  const body = JSON.stringify({ creatorId, userIds, displayname });
   const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: {"Content-Type": "application/json"},
-    body
-  })
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+  });
   if (!res.ok) {
-    alert(`creating channel err - ${await res.text()}`)
-    return
+    alert(`creating channel err - ${await res.text()}`);
+    return;
   }
-  return await res.json()
+  return await res.json();
 }
 
 async function fetchChannels(userId) {
@@ -197,17 +232,17 @@ async function fetchChannels(userId) {
     console.log("err -", await res.text());
     return;
   }
-  const {channels} = await res.json();
-  return channels
+  const { channels } = await res.json();
+  return channels;
 }
 
 async function fetchChannelById(channelId) {
-  const res = await fetch(`http://localhost:3000/channels/${channelId}`)
+  const res = await fetch(`http://localhost:3000/channels/${channelId}`);
   if (!res.ok) {
-    console.log('fetch channel by id err - ', await res.text())
-    return
+    console.log("fetch channel by id err - ", await res.text());
+    return;
   }
-  return await res.json()
+  return await res.json();
 }
 
 async function fetchChannelMessages(channelId) {
@@ -218,7 +253,7 @@ async function fetchChannelMessages(channelId) {
     console.log(`fetch channel messages err - ${await res.text()}`);
     return;
   }
-  const {messages} = await res.json();
+  const { messages } = await res.json();
   return messages;
 }
 
