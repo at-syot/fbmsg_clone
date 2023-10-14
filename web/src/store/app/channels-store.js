@@ -6,6 +6,7 @@ import { userStore } from "./user-store.js";
 import { websocketMessageStore, websocketStore } from "./websocket-store.js";
 import { uiSidebarDisplayModeStore } from "../ui/sidebar-display-store.js";
 import { uiContentPanelDisplayStore } from "../ui/content-pannel-display-store.js";
+import { serverHost } from '../../lib/client'
 
 const PERSISTED_KEY = "app-user-channels";
 
@@ -211,7 +212,7 @@ function withDefaultProps(userId) {
 }
 
 async function createChannel(creatorId, userIds, displayname) {
-  const endpoint = "http://localhost:3000/channels";
+  const endpoint = `${serverHost()}/channels`;
   const body = JSON.stringify({ creatorId, userIds, displayname });
   const res = await fetch(endpoint, {
     method: "POST",
@@ -226,7 +227,7 @@ async function createChannel(creatorId, userIds, displayname) {
 }
 
 async function fetchChannels(userId) {
-  const url = `http://localhost:3000/users/${userId}/channels`;
+  const url = `${serverHost()}/users/${userId}/channels`;
   const res = await fetch(url);
   if (!res.ok) {
     console.log("err -", await res.text());
@@ -237,7 +238,7 @@ async function fetchChannels(userId) {
 }
 
 async function fetchChannelById(channelId) {
-  const res = await fetch(`http://localhost:3000/channels/${channelId}`);
+  const res = await fetch(`${serverHost()}/channels/${channelId}`);
   if (!res.ok) {
     console.log("fetch channel by id err - ", await res.text());
     return;
@@ -247,7 +248,7 @@ async function fetchChannelById(channelId) {
 
 async function fetchChannelMessages(channelId) {
   const res = await fetch(
-    `http://localhost:3000/channels/${channelId}/messages`
+    `${serverHost()}/channels/${channelId}/messages`
   );
   if (!res.ok) {
     console.log(`fetch channel messages err - ${await res.text()}`);

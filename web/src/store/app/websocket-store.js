@@ -1,4 +1,5 @@
 import { writable } from "svelte/store";
+import { wsHost } from '../../lib/client'
 
 function createWebsocketMessageStore() {
   const { subscribe, set } = writable({});
@@ -36,7 +37,7 @@ function createWebsocketStore() {
       this.closeChannel();
 
       return new Promise(resolve => {
-        let url = new URL("ws://localhost:3000/ws");
+        let url = new URL(`${wsHost()}/ws`);
         url.searchParams.set("channelId", channelId);
         url.searchParams.set("userId", userId);
 
@@ -48,7 +49,7 @@ function createWebsocketStore() {
           resolve()
         };
         ws.onclose = function(e) {
-          console.log("onClose");
+          // console.log("onClose");
         };
       })
     },

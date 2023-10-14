@@ -7,6 +7,7 @@
   import greeting from "greeting";
   import isEmpty from "lodash/isEmpty";
   import { userStore } from "../store/app/user-store";
+  import { serverHost } from "../lib/client";
 
   let searchValue;
   let users;
@@ -20,8 +21,9 @@
   $: if ($uiSidebarDisplayModeStore) {
     searchValue = "";
   }
+
   async function fetchUsersByUsername(uname) {
-    const res = await fetch(`http://localhost:3000/users?username=${uname}`);
+    const res = await fetch(`${serverHost()}/users?username=${uname}`);
     const resJson = await res.json();
     if (!res.ok) return;
 
@@ -30,7 +32,6 @@
   }
 
   const onSearchInput = throttle(async ({ target: { value: uname } }) => {
-    console.log("uname", uname);
     const _users = await fetchUsersByUsername(uname);
     if (_users) users = _users;
   }, 300);

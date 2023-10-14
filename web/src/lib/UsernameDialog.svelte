@@ -2,6 +2,7 @@
   import { userStore } from "../store/app/user-store.js";
   import { usernameDialogStore } from "../store/ui/username-dialog-store.js";
   import { channelsStore } from "../store/app/channels-store.js";
+  import { serverHost } from "../lib/client";
 
   let containerCls;
   let username;
@@ -11,7 +12,7 @@
 
   async function onSubmit() {
     const body = JSON.stringify({ username });
-    const res = await fetch("http://localhost:3000/user", {
+    const res = await fetch(`${serverHost()}/user`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body,
