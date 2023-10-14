@@ -3,18 +3,20 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"net/http"
+
 	"github.com/at-syot/msg_clone/db"
 	"github.com/at-syot/msg_clone/ws"
 	"github.com/google/uuid"
-	"net/http"
 
 	"github.com/at-syot/msg_clone/libs"
 )
 
 type (
 	CreateChannelReq struct {
-		CreatorId string   `json:"creatorId"`
-		UserIds   []string `json:"userIds"`
+		Displayname *string  `json:"displayname"`
+		CreatorId   string   `json:"creatorId"`
+		UserIds     []string `json:"userIds"`
 	}
 
 	CreateChannelRes struct {
@@ -56,8 +58,8 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 
 		// creating channel
 		if err := conn.QueryRow(
-			`INSERT INTO channels (createdBy) VALUES ($1) RETURNING id`,
-			[]any{req.CreatorId}, &newChannelId,
+			`INSERT INTO channels (displayname, createdBy) VALUES ($1, $2) RETURNING id`,
+			[]any{req.Displayname, req.CreatorId}, &newChannelId,
 		); err != nil {
 			return err
 		}

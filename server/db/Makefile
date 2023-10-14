@@ -1,5 +1,9 @@
+#!make
+
+include ../.env
+
 MG_PATH=migration
-URL="postgres://aot:1234@localhost:5432/msg_clone?sslmode=disable"
+URL="postgres://$(DB_USER):$(DB_PW)@$(DB_HOST):$(DB_PORT)/msg_clone?sslmode=disable"
 
 migrate_up:
 	migrate -path $(MG_PATH) -database $(URL) -verbose up

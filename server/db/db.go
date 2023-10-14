@@ -6,14 +6,36 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 var (
 	DB *sql.DB
+
+	// envs
+	dbHost string
+	dbPort string
+	dbUser string
+	dbPw   string
+	dbName string
 )
 
 func Init() error {
-	connStr := "user=aot password=1234 dbname=msg_clone sslmode=disable"
+	err := loadEnvs()
+	if err != nil {
+		return err
+	}
+
+	connStr := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		dbHost,
+		dbPort,
+		dbUser,
+		dbPw,
+		dbName,
+	)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Printf("database connection err - %s\n", err.Error())
@@ -21,6 +43,25 @@ func Init() error {
 	}
 
 	DB = db
+	return nil
+}
+
+func loadEnvs() error {
+	err := godotenv.Load()
+	if err != nil {
+		return err
+	}
+
+	dbHost = os.Getenv("DB_HOST")
+	dbPort = os.Getenv("DB_PORT")
+	dbUser = os.Getenv("DB_USER")
+	dbPw = os.Getenv("DB_PW")
+	dbName = os.Getenv("DB_NAME")
+
+	if len(dbHost) == 0 || len(dbPort) == 0 || len(dbUser) == 0 || len(dbPw) == 0 || len(dbName) == 0 {
+		return errors.New("can't load db related envs")
+	}
+
 	return nil
 }
 
