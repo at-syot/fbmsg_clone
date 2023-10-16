@@ -20,10 +20,19 @@
 
   // need to use subscribe function -> otherwise it isn't reactive
   const unSubChannelStore = channelsStore.subscribe((channels) => {
+    if (!channels || channels.length === 0) {
+      channelId = "";
+      channelName = "";
+      messages = [];
+      isGroupChannel = false;
+      return;
+    }
+
     const activeChannels = channels.filter((ch) => ch.active);
     if (activeChannels.length == 0) return;
 
     const { id, displayname, messages: _messages, users } = activeChannels[0];
+
     channelId = id;
     channelName = displayname;
     messages = _messages;

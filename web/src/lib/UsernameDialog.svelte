@@ -3,14 +3,24 @@
   import { usernameDialogStore } from "../store/ui/username-dialog-store.js";
   import { channelsStore } from "../store/app/channels-store.js";
   import { serverHost } from "../lib/client";
+  import isEmpty from "lodash/isEmpty";
 
   let containerCls;
-  let username;
-  $: containerCls = `w-[25%] h-fit bg-slate-900 border border-gray-400 shadow mx-auto mt-10 left-0 right-0 rounded p-4 ${
+  let username = "";
+  $: containerCls = `h-fit bg-slate-900 border border-gray-400 shadow mx-auto mt-10 left-0 right-0 rounded p-4 w-[80%] md:w-[25%] md:max-w-[460px] ${
     $usernameDialogStore ? "absolute" : "hidden"
   }`;
+  $: {
+    let _ = $usernameDialogStore;
+    username = "";
+  }
 
   async function onSubmit() {
+    if (isEmpty(username)) {
+      alert("What should I call you ?");
+      return;
+    }
+
     const body = JSON.stringify({ username });
     const res = await fetch(`${serverHost()}/user`, {
       method: "POST",
@@ -22,12 +32,10 @@
       alert(`register user err ${await res.text()}`);
       return;
     }
-
     userStore.persist(resJson);
 
     const { userId } = resJson;
     await channelsStore.fetchChannels(userId);
-
     usernameDialogStore.close();
   }
 </script>

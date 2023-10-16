@@ -7,15 +7,15 @@
   import greeting from "greeting";
   import isEmpty from "lodash/isEmpty";
   import { userStore } from "../store/app/user-store";
+  import { signoutDialogStore } from "../store/ui/signout-dialog-store";
   import { serverHost } from "../lib/client";
+  import { usernameDialogStore } from "../store/ui/username-dialog-store";
 
   let searchValue;
   let users;
   let username = "";
 
-  $: if (!isEmpty($userStore)) {
-    username = $userStore.username;
-  }
+  $: username = !isEmpty($userStore) ? $userStore.username : "";
 
   /** when sidebarDisplayMode is changed -> reset searchValue */
   $: if ($uiSidebarDisplayModeStore) {
@@ -51,14 +51,24 @@
     uiSidebarDisplayModeStore.setSidebarDisplayMode("search_contacts");
   }
 
-  function onCreateChannelClick(e) {
+  function onCreateChannelClick() {
     uiContentPanelDisplayStore.setDisplaymode("creating-chan");
-    console.log(e);
+  }
+
+  function onGreetingClick() {
+    if (isEmpty($userStore)) {
+      usernameDialogStore.open();
+    } else {
+      signoutDialogStore.open();
+    }
   }
 </script>
 
 <!-- greeting -->
-<p class="text-white border-b border-slate-600 pb-4">
+<p
+  class="text-white border-b border-slate-600 pb-4 cursor-pointer"
+  on:click={onGreetingClick}
+>
   {greeting.random()}
   <span class="font-bold text-[24px]">{`${username?.toUpperCase()}`}</span>
 </p>

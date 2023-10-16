@@ -2,13 +2,13 @@ import { writable } from "svelte/store";
 import _ from "lodash/fp";
 import dayjs from "dayjs";
 import { get } from "svelte/store";
-import { userStore } from "./user-store.js";
+import * as persistedKeys from '../persisted-keys.js'
 import { websocketMessageStore, websocketStore } from "./websocket-store.js";
 import { uiSidebarDisplayModeStore } from "../ui/sidebar-display-store.js";
 import { uiContentPanelDisplayStore } from "../ui/content-pannel-display-store.js";
 import { serverHost } from '../../lib/client'
 
-const PERSISTED_KEY = "app-user-channels";
+const PERSISTED_KEY = persistedKeys.USER_CHANNELS_KEY;
 
 function createChannelsStore() {
   const { subscribe, set, update } = writable([]);
@@ -175,6 +175,10 @@ function createChannelsStore() {
 
       return toSetChans;
     },
+
+    clearChannels() {
+      set([])
+    }
   };
 }
 

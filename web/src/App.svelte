@@ -8,6 +8,7 @@
   import { channelsStore } from "./store/app/channels-store";
   import { uiContentPanelDisplayStore } from "./store/ui/content-pannel-display-store.js";
   import UsernameDialog from "./lib/UsernameDialog.svelte";
+  import SignoutDialog from "./lib/SignoutDialog.svelte";
   import CreatingChannel from "./lib/CreatingChannel.svelte";
 
   onMount(() => {
@@ -29,6 +30,7 @@
 
 <main class="relative bg-slate-900 h-screen max-h-screen flex text-slate-400">
   <UsernameDialog />
+  <SignoutDialog />
 
   <!--    sidebar -->
   <div

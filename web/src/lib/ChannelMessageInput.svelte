@@ -18,21 +18,34 @@
   function onInputKeydown(e) {
     // send message when - Enter -
     if (e.keyCode === 13) {
-      websocketMessageStore.send({
-        event: "message",
-        senderId: userId,
-        message: inputMsg,
-      });
-
-      inputMsg = "";
+      sendMsgEvent();
     }
+  }
+
+  function onSendBtnClick() {
+    sendMsgEvent();
+  }
+
+  function sendMsgEvent() {
+    const e = {
+      event: "message",
+      senderId: userId,
+      message: inputMsg,
+    };
+    websocketMessageStore.send(e);
+    inputMsg = "";
   }
 </script>
 
-<input
-  class="rounded-3xl p-2 pl-6 bg-slate-700 outline-none"
-  placeholder="Type a message..."
-  on:keydown={onInputKeydown}
-  bind:value={inputMsg}
-/>
+<div class="flex">
+  <input
+    class="rounded-3xl p-2 pl-6 bg-slate-700 outline-none grow"
+    placeholder="Type a message..."
+    on:keydown={onInputKeydown}
+    bind:value={inputMsg}
+  />
 
+  <button class="ml-6 mr-3 cursor-pointer" on:click={onSendBtnClick}
+    >Send</button
+  >
+</div>
