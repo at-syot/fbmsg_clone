@@ -12,4 +12,4 @@ COPY --from=builder /app/.env app/.env
 COPY --from=builder /app/bin/server app/server
 
 EXPOSE 3000
-CMD ./app/server
+CMD cd /app && ./server

@@ -1,6 +1,10 @@
 web/node_modules/
 web/dist/*
-server/.idea
 web/.idea
+server/.idea
+server/bin
+server/.env
+server/.env.prod
+server/deploy.sh
 
 .DS_Store
