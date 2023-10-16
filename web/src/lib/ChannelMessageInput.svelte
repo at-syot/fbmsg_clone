@@ -5,6 +5,7 @@
     websocketMessageStore,
   } from "../store/app/websocket-store.js";
   import { userStore } from "../store/app/user-store.js";
+  import isEmpty from "lodash/isEmpty";
 
   let userId = "";
   let inputMsg = "";
@@ -27,6 +28,7 @@
   }
 
   function sendMsgEvent() {
+    if (isEmpty(inputMsg)) return;
     const e = {
       event: "message",
       senderId: userId,

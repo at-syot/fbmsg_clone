@@ -11,8 +11,14 @@
 
 <div class={getSignoutDialogCls($signoutDialogStore)}>
   Signout ?
-  <button
-    on:click={signoutDialogStore.signoutConfirm}
-    class="self-end hover:rounded hover:bg-slate-400 px-3">Confirm</button
-  >
+  <div class="flex justify-end">
+    <button
+      on:click={signoutDialogStore.close}
+      class="self-end hover:rounded hover:bg-slate-400 px-3">x</button
+    >
+    <button
+      on:click={signoutDialogStore.signoutConfirm}
+      class="self-end hover:rounded hover:bg-slate-400 px-3">Confirm</button
+    >
+  </div>
 </div>

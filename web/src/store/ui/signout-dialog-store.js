@@ -7,6 +7,7 @@ function createSignoutDialogStore() {
   return {
     subscribe,
     open() { set(true) },
+    close() { set(false) },
     signoutConfirm() {
       userStore.signOut()
       set(false)
