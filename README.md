@@ -37,7 +37,22 @@ Click --> [Facebook msg clone](http://ec2-35-173-149-11.compute-1.amazonaws.com)
 6. Show latest chat's message in channel box
 
 ---
-### Screen short
+### Screen shorts
+> group channel 
+
+![image](md_images/gchan.png)
+
+> private channel
+
+![image](md_images/pchan.png)
+
+> creating group channel
+
+<img src="md_images/creating_gchannel.png" style="height: 420px"/>
+
+> creating private channel
+
+<img src="md_images/creating_pchan.png" style="height: 420px"/>
 
 ---
 ### Contact
