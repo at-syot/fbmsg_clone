@@ -21,22 +21,7 @@
       return;
     }
 
-    const body = JSON.stringify({ username });
-    const res = await fetch(`${serverHost()}/user`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body,
-    });
-    const resJson = await res.json();
-    if (!res.ok) {
-      alert(`register user err ${await res.text()}`);
-      return;
-    }
-    userStore.persist(resJson);
-
-    const { userId } = resJson;
-    await channelsStore.fetchChannels(userId);
-    usernameDialogStore.close();
+    await userStore.signIn(username);
   }
 </script>
 

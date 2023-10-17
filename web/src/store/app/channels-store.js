@@ -3,9 +3,9 @@ import _ from "lodash/fp";
 import dayjs from "dayjs";
 import { get } from "svelte/store";
 import * as persistedKeys from '../persisted-keys.js'
-import { websocketMessageStore, websocketStore } from "./websocket-store.js";
-import { uiSidebarDisplayModeStore } from "../ui/sidebar-display-store.js";
-import { uiContentPanelDisplayStore } from "../ui/content-pannel-display-store.js";
+import { websocketMessageStore, websocketStore } from "./websocket-store";
+import { uiSidebarDisplayModeStore } from "../ui/sidebar-display-store";
+import { uiContentPanelDisplayStore } from "../ui/content-pannel-display-store";
 import { serverHost } from '../../lib/client'
 
 const PERSISTED_KEY = persistedKeys.USER_CHANNELS_KEY;
@@ -39,6 +39,11 @@ function createChannelsStore() {
         return data;
       });
     },
+
+    /** 
+    * @function getActiveChannel
+    * @returns {Object} 
+    */
     getActiveChannel(channels) {
       const activeChans = channels.filter((ch) => ch.active);
       if (activeChans.length === 0) return;
@@ -174,6 +179,20 @@ function createChannelsStore() {
       this.persist();
 
       return toSetChans;
+    },
+
+    /** 
+    * @function autoJoinChannel
+    * @param {string} userId
+    */
+    async autoJoinChannel(userId) {
+      const channels = await this.fetchChannels(userId)
+      if (!channels || channels.length == 0) return
+
+      // auto join first channel
+      const { id: channelId } = channels[0]
+      await this.setActiveChannel(channelId)
+      await websocketStore.joinChannel(channelId, userId)
     },
 
     clearChannels() {
