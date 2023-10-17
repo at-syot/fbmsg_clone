@@ -56,7 +56,12 @@ Click --> [Facebook msg clone](http://ec2-35-173-149-11.compute-1.amazonaws.com)
 
 ---
 ### Contact
-Todsapon Boontap (Oat) 
+Todsapon Boontap (Oat)
+```
+24 Tofield Crescent Etobicoke Toronto ON, M9W 2B9
+```
+
+[Tel](tel:4378333578)
 
 [Linkedin](https://www.linkedin.com/in/todsapon-boontap-0a949097/)
 
@@ -64,10 +69,6 @@ Todsapon Boontap (Oat)
 
 [Upwork profile](https://www.upwork.com/freelancers/~01126d93bb3e706e43) ```upwork acc signon needed```
 
-
-
-
-[Svelte-img]: https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00
 [Svelte-url]: https://svelte.dev/
 [JS-img]: https://img.shields.io/badge/Javascript-grey?style=for-the-badge&logo=javascript
 [JS-url]: https://en.wikipedia.org/wiki/JavaScript
