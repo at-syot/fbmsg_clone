@@ -71,12 +71,12 @@
 
 <section class="border-b border-gray-700 p-4 flex justify-between">
   <label class="text-white font-semibold">{channelName}</label>
-  <a class="cursor-pointer">* * *</a>
+  <!--   <a class="cursor-pointer">* * *</a> -->
 </section>
 
 <div
   bind:this={messagesBox}
-  class="grow mt-3 flex flex-col gap-4 pt-6 pb-6 overflow-y-auto"
+  class="grow mt-3 flex flex-col gap-4 py-6 pl-3 overflow-y-auto"
 >
   {#each messages as m}
     {#if isGroupChannel === false}
@@ -91,19 +91,3 @@
     {/if}
   {/each}
 </div>
-
-<style>
-  ::-webkit-scrollbar {
-    width: 10px;
-  }
-
-  ::-webkit-scrollbar-track {
-    border-radius: 5px;
-    background-color: lightgray;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background-color: dimgray;
-    border-radius: 5px;
-  }
-</style>

@@ -39,15 +39,16 @@
   }
 </script>
 
-<div class="flex">
+<div class="flex gap-3 mx-3 pb-3 items-center">
   <input
-    class="rounded-3xl p-2 pl-6 bg-slate-700 outline-none grow"
+    class="rounded-3xl py-2 pl-6 bg-slate-700 outline-none grow"
     placeholder="Type a message..."
     on:keydown={onInputKeydown}
     bind:value={inputMsg}
   />
 
-  <button class="ml-6 mr-3 cursor-pointer" on:click={onSendBtnClick}
-    >Send</button
-  >
+  <button
+    class="fa-solid fa-paper-plane cursor-pointer"
+    on:click={onSendBtnClick}
+  />
 </div>

@@ -28,7 +28,7 @@
   }
 </script>
 
-<div class="pt-4">
+<div class="pt-2 px-3 overflow-y-auto overflow-x-hidden">
   {#each $channelsStore as channel (channel.id)}
     <a class={getChannelCls(channel)} on:click={() => onClick(channel)}>
       <p class="font-semibold max-w-full truncate">{channel.displayname}</p>

@@ -50,7 +50,9 @@ function createChannelsStore() {
       return activeChans[0];
     },
 
-    /** @function setActiveChannel */
+    /** @function setActiveChannel 
+    * 
+    */
     async setActiveChannel(channelId) {
       const messages = await fetchChannelMessages(channelId);
       update(
@@ -189,8 +191,9 @@ function createChannelsStore() {
       const channels = await this.fetchChannels(userId)
       if (!channels || channels.length == 0) return
 
-      // auto join first channel
-      const { id: channelId } = channels[0]
+      // auto join channel 
+      const activeCh = this.getActiveChannel(channels)
+      const channelId = activeCh ? activeCh.id : channels[0].id
       await this.setActiveChannel(channelId)
       await websocketStore.joinChannel(channelId, userId)
     },

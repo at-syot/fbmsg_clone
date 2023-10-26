@@ -21,6 +21,10 @@
   $: if ($uiSidebarDisplayModeStore) {
     searchValue = "";
   }
+  $: if (searchValue) {
+    const mode = searchValue.length == 0 ? "channels_list" : "search_contacts";
+    uiSidebarDisplayModeStore.setSidebarDisplayMode(mode);
+  }
 
   async function fetchUsersByUsername(uname) {
     const res = await fetch(`${serverHost()}/users?username=${uname}`);
@@ -66,7 +70,7 @@
 
 <!-- greeting -->
 <p
-  class="text-white border-b border-slate-600 pb-4 cursor-pointer"
+  class="text-white border-b border-slate-600 p-3 cursor-pointer"
   on:click={onGreetingClick}
 >
   {greeting.random()}
@@ -74,11 +78,11 @@
 </p>
 
 <!-- actions -->
-<div class="flex flex-row justify-center md:justify-between pt-2 pb-2">
+<div class="flex flex-row justify-center md:justify-between py-2 md:px-3">
   <label class="font-semibold text-[20px] hidden md:inline-block">Chats</label>
   <button
     on:click={onCreateChannelClick}
-    class="rounded-[50%] hover:bg-slate-700 p-3 w-[32px] h-[32px] flex justify-center items-center md:rounded md:w-fit md:h-fit md:p-0 md:pr-2 md:pl-2"
+    class="rounded-[50%] hover:bg-slate-700 p-3 w-[32px] h-[32px] flex justify-center items-center md:rounded md:w-fit md:h-fit md:p-0 md:px-2"
   >
     + {" "} <span class="hidden md:inline">Create Channel</span></button
   >
@@ -91,7 +95,7 @@
   on:keydown={onSearchKeydown}
   on:focus={onSearchInputFocusIn}
   placeholder="Search users"
-  class="outline-none p-2 w-full rounded bg-slate-700 focus:outline-blue-400 focus:outline-1 hidden md:block"
+  class="outline-none p-2 rounded bg-slate-700 focus:outline-blue-400 focus:outline-1 hidden md:block md:w-[93%] mx-auto"
 />
 
 <!-- sidebar content -->

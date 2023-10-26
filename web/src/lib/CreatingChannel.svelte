@@ -55,17 +55,20 @@
   $: selectedUserIds = renderingSelectedUsers.map((u) => u.id);
   $: channelName = renderingSelectedUsers.map((u) => u.username).join(", ");
   $: searchUsers(searchInputValue);
+
   $: if (inputElmt && usersBoxElmt) {
     if (usersBoxOpen) {
       const { width: usersBoxElmtWidth } = usersBoxElmt.getBoundingClientRect();
       const { height, top, left } = inputElmt.getBoundingClientRect();
       const userBoxElmtTopMargin = 10;
 
+      if (!isSmallScreen) {
+        usersBoxElmt.style.left = `${left - usersBoxElmtWidth / 2}px`;
+        usersBoxElmt.style.top = `${height + top + userBoxElmtTopMargin}px`;
+      }
       usersBoxElmt.style.borderWidth = "1px";
       usersBoxElmt.style.padding = "10px";
       usersBoxElmt.style.transform = "scaleY(1)";
-      usersBoxElmt.style.left = `${left - usersBoxElmtWidth / 2}px`;
-      usersBoxElmt.style.top = `${height + top + userBoxElmtTopMargin}px`;
     } else {
       usersBoxElmt.style.borderWidth = "0px";
       usersBoxElmt.style.padding = "0px";
@@ -85,8 +88,12 @@
   }
 
   function onUserLiClick(user) {
+    if (!isEmpty(user.id)) {
+      addSelectedUser(user);
+    }
+
     onInputFocus(false);
-    addSelectedUser(user);
+    searchInputValue = "";
   }
 
   function onCancelSelectedUserLiClick(user) {
@@ -114,7 +121,7 @@
     let _users = await fetchUsersByUsername(uname);
     _users = _users.filter((u) => u.id !== $userStore.userId);
 
-    if (!_users || _users.length == 0) {
+    if (isEmpty(_users)) {
       users = [{ username: "No result" }];
     } else {
       users = _users;
@@ -150,9 +157,8 @@
   }
 
   function getUserSearchBoxCls(isSmallScreen) {
-    console.log("render");
     let cls =
-      "bg-slate-800 w-[340px] rounded transition-[transform] h-auto duration-200 ease-out border border-slate-800 shadow";
+      "bg-slate-800 left-0 right-0 md:right-[auto] mx-auto w-[90%] md:w-[340px] rounded transition-[transform] h-auto max-h-[50%] overflow-y-auto duration-200 ease-out border border-slate-800 shadow";
     cls += !isSmallScreen ? " absolute" : "";
     cls += isSmallScreen ? " mt-[10px]" : "";
 
@@ -161,16 +167,21 @@
 </script>
 
 <!-- channel info -->
-<div class=" h-[60px] flex items-center justify-end">
-  <p class="grow text-left text-white font-semibold">{channelName}</p>
+<div
+  class="grid grid-cols-[5fr,1fr,1fr] md:grid-cols-[1fr,36px,60px] items-center gap-2 h-[60px] max-w-full px-3"
+>
+  <p class="text-left text-white font-semibold truncate">
+    {channelName}
+  </p>
+  {#if isEmpty(renderingSelectedUsers)}<span />{/if}
   <button
-    class="bg-slate-600 p-1 pl-3 pr-3 rounded-md"
+    class="bg-slate-600 py-1 px-3 rounded-md"
     on:click={onUserDetailBoxCancel}>x</button
   >
 
-  {#if renderingSelectedUsers.length}
+  {#if !isEmpty(renderingSelectedUsers)}
     <button
-      class="ml-3 p-1 pr-2 pl-2 bg-green-950 rounded-md"
+      class="p-1 bg-green-950 rounded-md"
       on:click={onUserDetailBoxCreateChan}>Create</button
     >
   {/if}
@@ -178,21 +189,22 @@
 
 <!-- users selected box -->
 <aside
-  class="flex pb-3 items-center border-b border-slate-600"
+  class="flex pb-3 px-3 items-center border-b border-slate-600 gap-2"
   bind:this={addUsersElmt}
-  on:resize={() => onScreenResize()}
 >
   <label>To:</label>
-  <div class="flex flex-wrap gap-2 ml-2">
+  <div class="flex flex-wrap gap-2">
     {#each renderingSelectedUsers as u (u.id)}
-      <p class="rounded bg-slate-600 pl-2 pr-2 flex items-center h-[32px]">
+      <a
+        class="rounded bg-slate-600 px-2 flex items-center h-[32px]"
+        on:click={onCancelSelectedUserLiClick(u)}
+      >
         <span class="max-w-[320px] truncate">{u.username}</span>
-        <button
+        <span
           class="ml-3 rounded-[50%] hover:bg-slate-300 w-[16px] h-[16px] flex items-center justify-center"
-          on:click={onCancelSelectedUserLiClick(u)}
           >x
-        </button>
-      </p>
+        </span>
+      </a>
     {/each}
 
     <input
@@ -202,7 +214,7 @@
       on:focusin={() => onInputFocus(true)}
       on:blur={() => onInputBlur()}
       placeholder="Type a name"
-      class="outline-none grow bg-transparent"
+      class="outline-none flex-1 bg-transparent"
     />
   </div>
 </aside>

@@ -20,7 +20,6 @@
       alert("What should I call you ?");
       return;
     }
-
     await userStore.signIn(username);
   }
 </script>
@@ -31,7 +30,7 @@
     <input
       bind:value={username}
       type="text"
-      placeholder="Tell us your name"
+      placeholder="Give me your name"
       class="p-2 pr-4 pl-4 bg-slate-700"
     />
   </label>
