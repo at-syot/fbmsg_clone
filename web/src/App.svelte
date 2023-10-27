@@ -11,10 +11,6 @@
   import SignoutDialog from "./lib/SignoutDialog.svelte";
   import CreatingChannel from "./lib/CreatingChannel.svelte";
   import { uiSidebarDisplayModeStore } from "./store/ui/sidebar-display-store";
-  import { websocketStore } from "./store/app/websocket-store";
-
-  let appElmtObserver = null;
-  let appElmt = null;
 
   /* life cycle */
   onMount(onMountFn);
@@ -30,26 +26,14 @@
     if (!udata) {
       usernameDialogStore.open();
     }
-    registAppDomSizeChange();
+    // observeResizing();
+    window.addEventListener("resize", () => {
+      uiSidebarDisplayModeStore.setSidebarDisplayMode("channels_list");
+    });
   }
 
   function onDestroyFn() {
-    appElmtObserver.unobserve(appElmt);
-    appElmtObserver.disconnect();
-  }
-
-  function registAppDomSizeChange() {
-    appElmt = document.getElementById("app");
-    appElmtObserver = new ResizeObserver(onAppDomSizeChange);
-    appElmtObserver.observe(appElmt);
-  }
-
-  /** @function onAppDomSizeChange
-   * when div[id=app] screen size change
-   * restore all ui to initial state
-   */
-  function onAppDomSizeChange(entires) {
-    uiSidebarDisplayModeStore.setSidebarDisplayMode("channels_list");
+    window.removeEventListener("resize");
   }
 </script>
 

@@ -14,15 +14,13 @@
   }
 </script>
 
-<div class="flex flex-col gap-4 pt-4">
+<div class="flex flex-col gap-4 pt-4 px-3 overflow-y-auto">
   {#if users}
     {#each users as u}
       <a
-        on:click={() => onClick(u)}
         class="font-semibold text-white p-2 hover:bg-slate-700 rounded cursor-pointer"
-        >{u.username}</a
+        on:click={() => onClick(u)}>{u.username}</a
       >
     {/each}
   {/if}
 </div>
-

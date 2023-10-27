@@ -21,10 +21,10 @@
   $: if ($uiSidebarDisplayModeStore) {
     searchValue = "";
   }
-  $: if (searchValue) {
+  /* $: if (searchValue) {
     const mode = searchValue.length == 0 ? "channels_list" : "search_contacts";
     uiSidebarDisplayModeStore.setSidebarDisplayMode(mode);
-  }
+  } */
 
   async function fetchUsersByUsername(uname) {
     const res = await fetch(`${serverHost()}/users?username=${uname}`);
