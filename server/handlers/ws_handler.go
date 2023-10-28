@@ -3,16 +3,16 @@ package handlers
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/at-syot/msg_clone/db"
 	"github.com/at-syot/msg_clone/ws"
 	"github.com/google/uuid"
+	"log"
 	"net/http"
 )
 
 type selectUserChannel struct {
 	id          string
-	displayname string
+	displayname *string
 	creator     bool
 }
 
@@ -32,6 +32,7 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		[]any{channelId, userId},
 		&result.id, &result.displayname, &result.creator,
 	); err != nil {
+		log.Println(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -46,9 +47,10 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	// upgrade http to websocket protocol
 	conn, err := wsUpgrader.Upgrade(w, r, nil)
 	if err != nil {
+		log.Println(err)
 		return
 	}
-	fmt.Printf("connected to channel %s\n", channelUUID)
+	log.Printf("connected to channel %s\n", channelUUID)
 
 	// wrap conn with Client
 	client := ws.NewClient(channel, conn)

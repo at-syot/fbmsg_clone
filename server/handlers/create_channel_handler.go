@@ -97,6 +97,7 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// create new channel with empty client
 	channelUUID := uuid.MustParse(newChannelId)
 	channelById[channelUUID] = ws.NewChannel(channelUUID)
 

@@ -34,6 +34,9 @@ function createWebsocketStore() {
   return {
     subscribe,
     joinChannel: async function(channelId, userId) {
+      // prevent ws to reconnect if connecting or connected
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return
+
       this.closeChannel();
 
       return new Promise(resolve => {
