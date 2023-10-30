@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        height: 100svh;
+      }
+      button {
+        width: 100svw;
+        height: 100svh;
+      }
+    </style>
+  </head>
+  <body>
+    <button onclick="onClearClick()">clear data</button>
+  </body>
+  <script lang="js">
+    async function onClearClick() {
+      console.log(process.env)
+      const res = await fetch('http://localhost:3000/clear-data') 
+      if (!res.ok) {
+        alert('clear data error', await res.text())
+      } else {
+        alert('clear data success.')
+      }
+    }
+  </script>
+</html>

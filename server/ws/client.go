@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"time"
 
 	"github.com/at-syot/msg_clone/db"
 	"github.com/google/uuid"
@@ -74,14 +73,15 @@ func (c *Client) SendingMessage() {
 			}
 		case <-c.finished:
 			return
-		/* 
-    for goroutine leak testing
+		}
+		/*
+			    for goroutine leak testing
 
-    default:
-			time.Sleep(time.Second)
-			log.Printf("client id %s is working\n", c.Id.String())
-		} 
-    */
+			    default:
+						time.Sleep(time.Second)
+						log.Printf("client id %s is working\n", c.Id.String())
+					}
+		*/
 	}
 }
 

@@ -39,6 +39,7 @@ func main() {
 	r.Get("/channels/{cid}", handlers.GetChannelById)
 	r.Get("/channels/{cid}/messages", handlers.GetChannelMessagesHandler)
 	r.Get("/ws", handlers.WebsocketHandler)
+	r.Get("/clear-data", handlers.ClearDataHandler)
 
 	log.Println("server start pn port :3000")
 	if err := http.ListenAndServe(":3000", r); err != nil {
